@@ -23,6 +23,7 @@ jobs:
         id: get-version
         run: |
           echo "VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+          echo "ARTIFACT=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)" >> $GITHUB_ENV
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -30,11 +31,22 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_PERSONAL_ACCESS_TOKEN }}
       - name: Build Docker image
-        run: docker build  -t $REPOSITORY:$VERSION .
+        run: docker build  -t $ARTIFACT:$VERSION .
       - name: Tag and Push on GitHub Packages
         run: |
-          docker tag $REPOSITORY:$VERSION $GHCR_URL/$REPOSITORY:$VERSION
-          docker tag $REPOSITORY:$VERSION $GHCR_URL/$REPOSITORY:latest
+          docker tag $ARTIFACT:$VERSION $GHCR_URL/$REPOSITORY:$VERSION
+          docker tag $ARTIFACT:$VERSION $GHCR_URL/$REPOSITORY:latest
           docker push $GHCR_URL/$REPOSITORY:$VERSION
           docker push $GHCR_URL/$REPOSITORY:latest
 
+      - name: Deploy to AWS Lightsail
+        uses: appleboy/ssh-action@v1.2.1
+        with:
+          host: ${{ secrets.AWS_LIGHTSAIL_IP }}
+          username: ${{ secrets.AWS_LIGHTSAIL_USER }}
+          key: ${{ secrets.AWS_LIGHTSAIL_SSH_KEY }}
+          script: |
+            docker stop ${{ env.ARTIFACT }} || true
+            docker rm ${{ env.ARTIFACT }} || true
+            docker pull ${{ env.GHCR_URL }}/${{ env.REPOSITORY }}:latest
+            docker run -d --name ${{ env.ARTIFACT }} -p 80:8080 ${{ env.GHCR_URL }}/${{ env.REPOSITORY }}:latest
