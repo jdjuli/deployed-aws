@@ -3,8 +3,9 @@ on:
   push:
     branches: [master-render]
 env:
-  REGISTRY: ghcr.io # GitHub Container Registry (GHCR)
   REPOSITORY: ${{ github.repository }}
+  REGISTRY: ghcr.io # GitHub Container Registry (GHCR)
+
 jobs:
   cd:
     name: Build & Push GitHub Package & Deploy on Render Docker Image
@@ -41,3 +42,11 @@ jobs:
         run: |
           docker push $REGISTRY/$REPOSITORY:$VERSION
           docker push $REGISTRY/$REPOSITORY:latest
+
+      - name: Deploy on Render
+        # En Render, en el servicio Web, Settings >> Deploy Hook >>  copiar el token de acceso
+        # En GitHub, en el repositorio, Settings >> Secrets and variables >> Actions >> definir la variable de entorno
+        # DEPLOY_HOOK_TOKEN con el token
+        run: |
+          curl --fail -X POST "https://api.render.com/deploy/${{ secrets.RENDER_DEPLOY_HOOK_TOKEN }}" || { echo "Deployment failed"; exit 1; }
+          echo "Deployment succeeded"
