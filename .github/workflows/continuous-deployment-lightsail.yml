@@ -46,7 +46,8 @@ jobs:
           username: ${{ secrets.AWS_LIGHTSAIL_USER }}
           key: ${{ secrets.AWS_LIGHTSAIL_SSH_KEY }}
           script: |
-            docker stop ${{ env.ARTIFACT }} || true
-            docker rm ${{ env.ARTIFACT }} || true
+            docker stop ${{ env.ARTIFACT }}-app || true
+            docker rm ${{ env.ARTIFACT }}-app || true
             docker pull ${{ env.GHCR_URL }}/${{ env.REPOSITORY }}:latest
-            docker run -d --name ${{ env.ARTIFACT }} -p 80:8080 ${{ env.GHCR_URL }}/${{ env.REPOSITORY }}:latest
+            docker tag ${{ env.GHCR_URL }}/${{ env.ARTIFACT }}:latest ${{ env.ARTIFACT }}:latest
+            docker run -d --name ${{ env.ARTIFACT }}-app -p 80:8080 ${{ env.GHCR_URL }}/${{ env.REPOSITORY }}:latest
