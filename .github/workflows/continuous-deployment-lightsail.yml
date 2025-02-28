@@ -28,6 +28,10 @@ jobs:
         id: get-version
         run: echo "VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
 
+      - name: Extract artifactId from pom.xml
+        id: get-artifact
+        run: echo "ARTIFACT=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)" >> $GITHUB_ENV
+
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -57,8 +61,8 @@ jobs:
           key: ${{ secrets.AWS_LIGHTSAIL_SSH_KEY }}
           script: |
             echo ${{ secrets.GHCR_PERSONAL_ACCESS_TOKEN }} | docker login ${{ env.GHCR_URL }} -u ${{ github.actor }} --password-stdin
-            docker stop my-app || true
-            docker rm my-app || true
+            docker stop ${{ env.ARTIFACT }}-app || true
+            docker rm ${{ env.ARTIFACT }}-app || true
             docker rmi ${{ env.GHCR_URL }}/${{ env.REPOSITORY }}:latest || true
             docker pull ${{ env.GHCR_URL }}/${{ env.REPOSITORY }}:latest
-            docker run -d --name my-app --restart always -p 80:8080 ${{ env.GHCR_URL }}/${{ env.REPOSITORY }}:latest
+            docker run -d --name ${{ env.ARTIFACT }}-app --restart always -p 80:8080 ${{ env.GHCR_URL }}/${{ env.REPOSITORY }}:latest
