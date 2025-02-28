@@ -47,8 +47,8 @@ jobs:
           context: .
           push: true
           tags: |
-            $AWS_ECR_URL/${{ env.REPOSITORY }}:${{ env.VERSION }}
-            $AWS_ECR_URL/${{ env.REPOSITORY }}:latest
+            ${{ env.AWS_ECR_URL }}/${{ env.REPOSITORY }}:${{ env.VERSION }}
+            ${{ env.AWS_ECR_URL }}/${{ env.REPOSITORY }}:latest
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -60,8 +60,8 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
       - name: Tag and Push AWS ECR
         run: |
-          docker tag $REPOSITORY:$VERSION $AWS_ECR_URL/$REPOSITORY:latest
-          docker push $AWS_ECR_URL/$REPOSITORY:latest
+          docker tag $REPOSITORY:$VERSION ${{ env.AWS_ECR_URL }}/$REPOSITORY:latest
+          docker push ${{ env.AWS_ECR_URL }}/$REPOSITORY:latest
 
       - name: Update ECS service
         run: |
