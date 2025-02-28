@@ -47,8 +47,8 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ env.GHCR_URL }}/${{ env.REPOSITORY }}:${{ env.VERSION }}
-            ${{ env.GHCR_URL }}/${{ env.REPOSITORY }}:latest
+            $AWS_ECR_URL/${{ env.REPOSITORY }}:${{ env.VERSION }}
+            $AWS_ECR_URL/${{ env.REPOSITORY }}:latest
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
